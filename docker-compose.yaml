@@ -1,0 +1,18 @@
+services:
+  logs:
+    build: .
+    container_name: automatization-logs
+    working_dir: /app/logging
+    volumes:
+      - .:/app
+    command: ["poetry", "run", "python", "do_it_yourself.py"]
+
+  tests:
+    build: .
+    container_name: automatization-tests
+    working_dir: /app
+    environment:
+      PYTHONPATH: "."
+    volumes:
+      - .:/app
+    command: ["poetry", "run", "pytest", "testing/test_name.py"]
