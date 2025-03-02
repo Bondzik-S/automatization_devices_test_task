@@ -1,0 +1,19 @@
+[project]
+name = "automatization-devices-test-task"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Bondzik-S",email = "bondziks@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+
+[tool.poetry.dependencies]
+python = "^3.12"
+pytest = "^8.3.5"
