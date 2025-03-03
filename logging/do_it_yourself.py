@@ -3,16 +3,16 @@ import time
 
 def parse_log_line(line):
     """
-    Розбирає один рядок логу і повертає словник з даними, якщо рядок валідний.
-    Очікується, що після "> " знаходиться частина повідомлення в лапках, розділена ';'.
+    Parses a single log line and returns a dictionary with extracted data if the line is valid.
+    The expected format is a message enclosed in quotes and separated by ';' after "> ".
 
-    Необхідні дані:
-      - handler (позиція 0) має бути "BIG"
-      - sensor_id (позиція 2) – приводиться до верхнього регістру
-      - S_P_1 (позиція 6)
-      - S_P_2 (позиція 15)
-      - state (передостанній елемент)
-    Якщо не все в порядку, повертає None.
+    Required data:
+      - handler (position 0) must be "BIG"
+      - sensor_id (position 2) – converted to uppercase
+      - S_P_1 (position 6)
+      - S_P_2 (position 15)
+      - state (second-to-last element)
+    Returns None if the line is invalid.
     """
     if "> " not in line:
         return None
@@ -33,30 +33,31 @@ def parse_log_line(line):
 
 
 def is_ok(entry):
-    """Повертає True, якщо стан '02'."""
+    """Returns True if the state is '02'."""
     return entry.get("state") == "02"
 
 
 def is_failed(entry):
-    """Повертає True, якщо стан 'DD'."""
+    """Returns True if the state is 'DD'."""
     return entry.get("state") == "DD"
 
 
 def process_error(sp1, sp2):
     """
-    Обробляє помилку для записів зі станом "DD" за даними S_P_1 і S_P_2.
-    Алгоритм:
-      1. Видаляємо останній символ з S_P_1 (контрольна сума) та прибираємо мінус з S_P_2.
-      2. Конкатенуємо отримані рядки. Якщо довжина менша за 6 – доповнюємо нулями зліва,
-         якщо довша – обрізаємо до 6 символів.
-      3. Розбиваємо рядок на три пари (по 2 символи).
-      4. Перетворюємо кожну пару в 8-бітове двійкове представлення.
-      5. З кожного двійкового числа беремо 5-й біт (індекс 4).
-      6. Повертаємо лише одну помилку за пріоритетом:
-           - Якщо перший біт = '1' → "Battery device error"
-           - Інакше, якщо другий біт = '1' → "Temperature device error"
-           - Інакше, якщо третій біт = '1' → "Threshold central error"
-           - Якщо жоден прапорець не встановлено → "Unknown device error"
+    Processes an error for entries with state "DD" using S_P_1 and S_P_2 values.
+
+    Algorithm:
+      1. Remove the last character from S_P_1 (checksum) and strip the minus sign from S_P_2.
+      2. Concatenate the processed strings. If the length is less than 6, pad with zeros on the left;
+         if longer, trim to 6 characters.
+      3. Split the string into three pairs (2 characters each).
+      4. Convert each pair into an 8-bit binary representation.
+      5. Extract the 5th bit (index 4) from each binary number.
+      6. Return only one error message based on priority:
+           - If the first bit = '1' → "Battery device error"
+           - Otherwise, if the second bit = '1' → "Temperature device error"
+           - Otherwise, if the third bit = '1' → "Threshold central error"
+           - If no flags are set → "Unknown device error"
     """
     if sp1 == "" or sp2 == "":
         return "Unknown device error"
@@ -89,12 +90,12 @@ def process_error(sp1, sp2):
 
 def process_file(file_path):
     """
-    Обробляє лог-файл і повертає статистику:
-      - all_devices: кількість унікальних сенсорів із BIG повідомленнями
-      - successful_devices: сенсори, що завжди надсилали "02"
-      - failed_devices: сенсори, які хоча б раз надіслали "DD"
-      - failed_sensors: словник {sensor_id: error_message} для несправних сенсорів
-      - success_messages: словник {sensor_id: count} для сенсорів, що завжди надсилали "02"
+    Processes a log file and returns statistics:
+      - all_devices: count of unique sensors with BIG messages
+      - successful_devices: sensors that always sent state "02"
+      - failed_devices: sensors that sent state "DD" at least once
+      - failed_sensors: dictionary {sensor_id: error_message} for faulty sensors
+      - success_messages: dictionary {sensor_id: count} for sensors that always sent "02"
     """
     success_messages = {}
     failed_sensors = {}
@@ -125,6 +126,7 @@ def process_file(file_path):
 
 
 def print_results(all_devices, successful_devices, failed_devices, failed_sensors, success_messages):
+    """Prints the processed statistics in a readable format."""
     print("All big messages: " + str(all_devices) + "\n")
     print("Successful big messages: " + str(successful_devices) + "\n")
     print("Failed big messages: " + str(failed_devices) + "\n")
@@ -137,6 +139,10 @@ def print_results(all_devices, successful_devices, failed_devices, failed_sensor
 
 
 def main():
+    """
+        Entry point of the script.
+        Measures execution time, processes the log file, and prints the results.
+    """
     start = time.time()
     file_path = "app_2.log"
     results = process_file(file_path)
