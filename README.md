@@ -24,7 +24,7 @@
 ### Without Docker
 
 ```bash
-   cd logging
+   cd logging_task
    poetry run python do_it_yourself.py
 ```
 
