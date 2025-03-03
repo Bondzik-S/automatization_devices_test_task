@@ -1,11 +1,11 @@
 import pytest
 from testing.scanner_handler import CheckQr
 
-def fake_check_in_db_success(self, qr):
+def fake_check_in_db_success(self: CheckQr, qr: str) -> bool:
     """Simulates device found in the database (returns True)."""
     return True
 
-def fake_check_in_db_failure(self, qr):
+def fake_check_in_db_failure(self: CheckQr, qr: str) -> None:
     """Simulates device not found in the database (returns None)."""
     return None
 
@@ -14,7 +14,7 @@ def fake_check_in_db_failure(self, qr):
     ("12345", "Green"),
     ("qwertyu", "Fuzzy Wuzzy")
 ])
-def test_check_len_color_valid(qr, expected_color):
+def test_check_len_color_valid(qr: str, expected_color: str) -> None:
     """
     Tests that check_len_color returns the correct color for valid QR codes.
     For lengths 3, 5, and 7, the expected colors are 'Red', 'Green', and 'Fuzzy Wuzzy', respectively.
@@ -28,7 +28,7 @@ def test_check_len_color_valid(qr, expected_color):
     "qwer",
     "qwerty"
 ])
-def test_check_len_color_invalid(qr):
+def test_check_len_color_invalid(qr: str) -> None:
     """
     Tests that check_len_color returns None for QR codes with invalid lengths.
     """
@@ -36,7 +36,7 @@ def test_check_len_color_invalid(qr):
     result = checker.check_len_color(qr)
     assert result is None, f"Expected None for QR '{qr}', got {result}"
 
-def test_scan_check_out_list_not_in_db(monkeypatch):
+def test_scan_check_out_list_not_in_db(monkeypatch: pytest.MonkeyPatch) -> None:
     """
     Tests that when the device is not found in the database (check_in_db returns None),
     the second callback in scan_check_out_list returns ['Not in DB'].
@@ -48,7 +48,7 @@ def test_scan_check_out_list_not_in_db(monkeypatch):
     error_result = callbacks[1]()
     assert error_result == ['Not in DB'], f"Expected ['Not in DB'], got {error_result}"
 
-def test_scan_check_out_list_invalid_length(monkeypatch):
+def test_scan_check_out_list_invalid_length(monkeypatch: pytest.MonkeyPatch) -> None:
     """
     Tests that for a QR code with an invalid length (e.g., 4 characters),
     the first callback in scan_check_out_list returns an error message about wrong QR length.
@@ -61,7 +61,7 @@ def test_scan_check_out_list_invalid_length(monkeypatch):
     assert isinstance(error_result, list), "Expected a list of errors"
     assert "Wrong qr length" in error_result[0], f"Expected error about wrong qr length, got {error_result[0]}"
 
-def test_check_scanned_device_success(monkeypatch):
+def test_check_scanned_device_success(monkeypatch: pytest.MonkeyPatch) -> None:
     """
     Tests that for a valid QR code (device found in the database and valid length),
     check_scanned_device calls can_add_device with the correct message.
@@ -78,7 +78,7 @@ def test_check_scanned_device_success(monkeypatch):
     expected_message = f"hallelujah {qr}"
     assert captured.get("msg") == expected_message, f"Expected '{expected_message}', got '{captured.get('msg')}'"
 
-def test_check_scanned_device_failure(monkeypatch):
+def test_check_scanned_device_failure(monkeypatch: pytest.MonkeyPatch) -> None:
     """
     Tests that if a QR code is invalid (e.g., wrong length), check_scanned_device does not call can_add_device.
     """
@@ -86,14 +86,14 @@ def test_check_scanned_device_failure(monkeypatch):
     checker = CheckQr()
     monkeypatch.setattr(CheckQr, "check_in_db", fake_check_in_db_success)
     captured = {}
-    def fake_can_add_device(self, message):
+    def fake_can_add_device(self, message: str) -> str:
         captured["msg"] = message
         return message
     monkeypatch.setattr(CheckQr, "can_add_device", fake_can_add_device)
     checker.check_scanned_device(qr)
     assert "msg" not in captured, "can_add_device should not be called if there is an error."
 
-def test_static_methods():
+def test_static_methods() -> None:
     """
     Tests that the static methods send_error and can_add_device return the provided values.
     """
